@@ -6,8 +6,8 @@ export default function Home() {
   const [me, setMe] = useState<Me | null>(null)
   const [loading, setLoading] = useState(true)
   const [file, setFile] = useState<File | null>(null)
-  const [src, setSrc] = useState<'zh'|'en'>('zh')
-  const [tgt, setTgt] = useState<'zh'|'en'>('en')
+  const [src, setSrc] = useState<'zh' | 'en'>('zh')
+  const [tgt, setTgt] = useState<'zh' | 'en'>('en')
   const [msg, setMsg] = useState<string>('')
 
   useEffect(() => {
@@ -41,47 +41,75 @@ export default function Home() {
   }
 
   return (
-    <main style={{padding: 24, fontFamily: 'ui-sans-serif', maxWidth: 920, margin: '0 auto'}}>
-      <h1 style={{fontSize: 32, fontWeight: 800}}>PPT 翻译网站（MVP）</h1>
-      <p style={{color:'#444'}}>上传 PPTX（≤20MB）、选择语言，预览与编辑将在后续完成。当前为演示流程。</p>
+    <div className="landing-container">
+      <div className="landing-card">
+        <h1 className="landing-title">📊 PPT 翻译工具</h1>
+        <p className="landing-subtitle">
+          上传您的 PowerPoint 文件，轻松实现中英文互译。支持在线预览、编辑和导出。
+        </p>
 
-      {loading ? (
-        <p>加载中...</p>
-      ) : me?.user ? (
-        <section style={{marginTop: 24}}>
-          <p>已登录：{me.user.email} <a href="/api/auth/logout" style={{marginLeft:12}}>退出</a></p>
-          <form onSubmit={onSubmit} style={{marginTop: 16, display:'grid', gap:12}}>
-            <div>
-              <label>选择 PPTX 文件：</label>
-              <input type="file" accept=".pptx" onChange={e=>setFile(e.target.files?.[0]||null)} />
-              <small style={{marginLeft:8,color:'#666'}}>最大 20MB</small>
-            </div>
-            <div style={{display:'flex', gap:12, alignItems:'center'}}>
-              <label>源语言：</label>
-              <select value={src} onChange={e=>setSrc(e.target.value as any)}>
-                <option value="zh">中文</option>
-                <option value="en">英文</option>
-              </select>
-              <span>→</span>
-              <label>目标语言：</label>
-              <select value={tgt} onChange={e=>setTgt(e.target.value as any)}>
-                <option value="zh">中文</option>
-                <option value="en">英文</option>
-              </select>
-            </div>
-            <button type="submit" style={{padding:'8px 14px', background:'#111', color:'#fff', borderRadius:6}}>创建翻译任务（演示）</button>
-            {msg && <p style={{color:'#0a7'}}>{msg}</p>}
-          </form>
-        </section>
-      ) : (
-        <section style={{marginTop: 24}}>
-          <p>你尚未登录。</p>
-          <div style={{display:'flex', gap:12}}>
-            <a href="/login" style={{color:'#06f'}}>登录</a>
-            <a href="/register" style={{color:'#06f'}}>注册</a>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⏳</div>
+            加载中...
           </div>
-        </section>
-      )}
-    </main>
+        ) : me?.user ? (
+          <>
+            <div className="user-info">
+              <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                👤 {me.user.email}
+              </span>
+              <a href="/api/auth/logout" className="logout-link">退出登录</a>
+            </div>
+
+            <form onSubmit={onSubmit} className="upload-form">
+              <div className="form-group">
+                <label className="form-label">📎 选择 PPTX 文件</label>
+                <input
+                  type="file"
+                  accept=".pptx"
+                  onChange={e => setFile(e.target.files?.[0] || null)}
+                  className="file-input"
+                />
+                <small style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                  支持最大 20MB 的文件
+                </small>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">🌐 语言设置</label>
+                <div className="lang-selector-row">
+                  <select value={src} onChange={e => setSrc(e.target.value as any)} className="lang-select">
+                    <option value="zh">🇨🇳 中文</option>
+                    <option value="en">🇺🇸 英文</option>
+                  </select>
+                  <span className="lang-arrow">→</span>
+                  <select value={tgt} onChange={e => setTgt(e.target.value as any)} className="lang-select">
+                    <option value="zh">🇨🇳 中文</option>
+                    <option value="en">🇺🇸 英文</option>
+                  </select>
+                </div>
+              </div>
+
+              <button type="submit" className="submit-btn" disabled={!file}>
+                {file ? '🚀 开始翻译' : '请先选择文件'}
+              </button>
+
+              {msg && <div className="status-message">{msg}</div>}
+            </form>
+          </>
+        ) : (
+          <div className="auth-section">
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+              请先登录以使用翻译服务
+            </p>
+            <div className="auth-links">
+              <a href="/login" className="auth-link">🔑 登录</a>
+              <a href="/register" className="auth-link">✨ 注册</a>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
