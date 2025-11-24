@@ -17,9 +17,12 @@ export async function generatePreviews(pptxPath: string, outputDir: string): Pro
   // 1. PPTX → PDF (使用 LibreOffice headless)
   const pdfDir = path.join(outputDir, 'temp')
   await fs.promises.mkdir(pdfDir, { recursive: true })
-  
-  const soffice = '/Applications/LibreOffice.app/Contents/MacOS/soffice'
-  
+
+  const isMac = process.platform === 'darwin'
+  const soffice = isMac
+    ? '/Applications/LibreOffice.app/Contents/MacOS/soffice'
+    : 'libreoffice'
+
   try {
     await execAsync(
       `"${soffice}" --headless --convert-to pdf --outdir "${pdfDir}" "${pptxPath}"`,
@@ -39,8 +42,9 @@ export async function generatePreviews(pptxPath: string, outputDir: string): Pro
   // 2. PDF → PNG (使用 ImageMagick)
   // 一次性转换所有页面
   try {
+    const magick = isMac ? 'magick' : 'convert'
     await execAsync(
-      `magick -density 150 "${pdfPath}" -quality 90 "${outputDir}/slide.png"`,
+      `${magick} -density 150 "${pdfPath}" -quality 90 "${outputDir}/slide.png"`,
       { timeout: 60000 }
     )
   } catch (e: any) {

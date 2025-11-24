@@ -4,8 +4,12 @@ FROM node:20-bullseye AS base
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-venv python3-pip \
     libreoffice \
+    imagemagick ghostscript \
     fonts-noto-cjk \
   && rm -rf /var/lib/apt/lists/*
+
+# Fix ImageMagick policy to allow PDF conversion
+RUN sed -i 's/rights="none" pattern="PDF"/rights="read|write" pattern="PDF"/' /etc/ImageMagick-6/policy.xml || true
 
 WORKDIR /app
 
