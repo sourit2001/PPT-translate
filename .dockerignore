@@ -1,0 +1,9 @@
+node_modules
+.git
+.next
+.data
+.env*
+repo-frontend/node_modules
+repo-frontend/.next
+repo-worker/venv
+repo-worker/__pycache__
