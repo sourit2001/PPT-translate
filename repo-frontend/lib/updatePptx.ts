@@ -27,23 +27,23 @@ export async function updatePptxWithTranslations(
   const translations: Record<string, string> = {}
   const totalElements = Object.keys(elements).length
   let translatedCount = 0
-  
+
   for (const el of Object.values(elements)) {
     if (el.translated_text && el.translated_text.trim() && el.source_text) {
       translations[el.source_text] = el.translated_text
       translatedCount++
     }
   }
-  
+
   console.log(`项目共 ${totalElements} 个元素，其中 ${translatedCount} 个已翻译`)
   console.log(`准备写入 ${Object.keys(translations).length} 条翻译`)
-  
+
   if (translatedCount === 0) {
     console.warn('⚠️  没有已翻译的内容，请先翻译或编辑译文')
   } else if (translatedCount < totalElements) {
     console.log(`ℹ️  还有 ${totalElements - translatedCount} 个元素未翻译`)
   }
-  
+
   // 输出前 3 条示例
   const samples = Object.entries(translations).slice(0, 3)
   if (samples.length > 0) {
@@ -52,7 +52,7 @@ export async function updatePptxWithTranslations(
       console.log(`  "${src.substring(0, 30)}..." -> "${tgt.substring(0, 30)}..."`)
     })
   }
-  
+
   // 输出未翻译的元素（帮助诊断）
   const untranslated = Object.values(elements).filter(el => !el.translated_text || !el.translated_text.trim())
   if (untranslated.length > 0) {
@@ -61,7 +61,7 @@ export async function updatePptxWithTranslations(
       console.log(`  - 第 ${el.slideIndex} 页: "${el.source_text.substring(0, 50)}..."`)
     })
   }
-  
+
   // 输出第 6 页的所有元素（调试用）
   const page6Elements = Object.values(elements).filter(el => el.slideIndex === 6)
   if (page6Elements.length > 0) {
@@ -77,7 +77,19 @@ export async function updatePptxWithTranslations(
 
   // 调用 Python 脚本（使用虚拟环境）
   const scriptPath = path.join(process.cwd(), 'scripts', 'update_pptx.py')
-  const pythonPath = path.join(process.cwd(), '.venv', 'bin', 'python3')
+  // 确定 Python 路径
+  // 1. Docker 环境
+  const dockerPython = '/app/repo-worker/venv/bin/python3'
+  // 2. 本地环境
+  const localPython = path.join(process.cwd(), '.venv', 'bin', 'python3')
+
+  let pythonPath = 'python3' // 默认回退到系统 Python
+
+  if (fs.existsSync(dockerPython)) {
+    pythonPath = dockerPython
+  } else if (fs.existsSync(localPython)) {
+    pythonPath = localPython
+  }
   try {
     const { stdout, stderr } = await execAsync(
       `"${pythonPath}" "${scriptPath}" "${originalPath}" "${translatedPath}" "${translationsJsonPath}"`,
@@ -90,7 +102,7 @@ export async function updatePptxWithTranslations(
   }
 
   // 清理临时文件
-  await fs.promises.unlink(translationsJsonPath).catch(() => {})
+  await fs.promises.unlink(translationsJsonPath).catch(() => { })
 
   return translatedPath
 }
