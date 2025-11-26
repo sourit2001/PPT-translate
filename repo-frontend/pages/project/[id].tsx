@@ -11,6 +11,49 @@ interface Project {
   elements: Record<string, ElementT>
 }
 
+
+// Helper Component for Image Previews
+function PreviewImage({ src, alt, isTranslated }: { src: string, alt: string, isTranslated?: boolean }) {
+  const [error, setError] = useState(false)
+
+  // Reset error when src changes
+  useEffect(() => {
+    setError(false)
+  }, [src])
+
+  if (error && isTranslated) {
+    return (
+      <div className="placeholder" style={{
+        width: '100%',
+        aspectRatio: '16/9',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+        border: '2px dashed var(--border)',
+        borderRadius: '8px',
+        gap: '0.5rem'
+      }}>
+        <div style={{ fontSize: '2rem' }}>📄</div>
+        <div style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 500 }}>
+          点击"翻译当前页"生成译文预览
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className="preview-img"
+      onError={() => setError(true)}
+      style={error ? { display: 'none' } : {}}
+    />
+  )
+}
+
 export default function ProjectPage() {
   const router = useRouter()
   const { id } = router.query as { id?: string }
@@ -346,23 +389,11 @@ export default function ProjectPage() {
                       <span className="dot translated"></span> 译文 (Translated)
                     </div>
                     <div className="image-frame translated">
-                      <img
+                      <PreviewImage
                         key={translatedPreviewKey}
                         src={`/api/preview-translated/${project.id}/${activeSlide - 1}?t=${translatedPreviewKey}`}
                         alt={`翻译后第 ${activeSlide} 页`}
-                        className="preview-img"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement
-                          target.style.display = 'none'
-                          const parent = target.parentElement
-                          if (parent && !parent.querySelector('.placeholder')) {
-                            const placeholder = document.createElement('div')
-                            placeholder.className = 'placeholder'
-                            placeholder.style.cssText = 'width:100%;aspect-ratio:16/9;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);border:2px dashed var(--border);border-radius:8px;gap:0.5rem;'
-                            placeholder.innerHTML = '<div style="font-size:2rem;">📄</div><div style="color:var(--text-secondary);font-size:14px;font-weight:500;">点击"翻译当前页"生成译文预览</div>'
-                            parent.appendChild(placeholder)
-                          }
-                        }}
+                        isTranslated={true}
                       />
                     </div>
                   </div>
