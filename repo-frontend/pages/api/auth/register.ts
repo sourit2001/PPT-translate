@@ -13,14 +13,14 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     res.status(400).json({ error: '缺少 email 或 password' })
     return
   }
-  const exists = db.users.find(u => u.email === email)
+  const exists = db.findUserByEmail(email)
   if (exists) {
     res.status(409).json({ error: '邮箱已存在' })
     return
   }
   const passwordHash = bcrypt.hashSync(password, 10)
   const user: User = { email, passwordHash, createdAt: Date.now() }
-  db.users.push(user)
+  db.createUser(user)
   setSessionForEmail(res, email)
   res.status(200).json({ ok: true })
 }
